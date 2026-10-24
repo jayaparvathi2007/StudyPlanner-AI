@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Adaptive Study Planner | Smart Timetable &amp; Mastery Engine</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <div class="app-container">
+    
+    <!-- Left Navigation Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-text">
+          <h1>StudyPlanner AI</h1>
+          <span>Adaptive Engine</span>
+        </div>
+      </div>
+
+      <ul class="nav-menu">
+        <li class="nav-item active" data-view="dashboard">
+          <a href="#dashboard">
+            <span class="nav-icon">📊</span>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item" data-view="subjects">
+          <a href="#subjects">
+            <span class="nav-icon">📚</span>
+            <span>Subjects &amp; Topics</span>
+          </a>
+        </li>
+        <li class="nav-item" data-view="timetable">
+          <a href="#timetable">
+            <span class="nav-icon">🗓️</span>
+            <span>Study Timetable</span>
+          </a>
+        </li>
+        <li class="nav-item" data-view="ai-advisor">
+          <a href="#ai-advisor">
+            <span class="nav-icon">🤖</span>
+            <span>AI Study Advisor</span>
+          </a>
+        </li>
+        <li class="nav-item" data-view="quiz">
+          <a href="#quiz">
+            <span class="nav-icon">🎯</span>
+            <span>Practice Quiz</span>
+            <span id="weakBadge" class="nav-badge" style="display: none;">0</span>
+          </a>
+        </li>
+        <li class="nav-item" data-view="analytics">
+          <a href="#analytics">
+            <span class="nav-icon">📈</span>
+            <span>Analytics &amp; Streaks</span>
+          </a>
+        </li>
+      </ul>
+
+      <!-- Sidebar Footer with AI Status & User Info -->
+      <div class="sidebar-footer">
+        <div id="aiStatusPill" class="ai-status-pill" onclick="openConfigModal()" title="Click to configure Gemini API Key">
+          <div class="ai-indicator">
+            <div id="aiDot" class="ai-dot"></div>
+            <span id="aiStatusLabel" style="font-weight:600;">Gemini AI</span>
+          </div>
+          <span style="font-size: 11px; color: #94a3b8;">Settings ⚙️</span>
+        </div>
+
+        <div class="user-profile">
+          <div class="avatar" id="userAvatar">AM</div>
+          <div class="user-info" style="flex: 1; overflow: hidden;">
+            <div class="user-name" id="userName" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Alex Mercer</div>
+            <div class="user-target" id="userTarget">Target: 3.5 hrs/day</div>
+          </div>
+          <button id="authActionBtn" class="logout-btn" onclick="handleAuthAction()" title="Switch Account / Sign Out">🚪 Sign Out</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-wrapper">
+      
+      <!-- Top Action Bar -->
+      <header class="top-bar">
+        <div class="view-header">
+          <h2 id="viewTitle">Student Dashboard</h2>
+          <p id="viewSubtitle">Overview of subjects, deadlines, study hours, and adaptive recommendations</p>
+        </div>
+
+        <div class="top-actions">
+          <button class="btn btn-secondary btn-sm" onclick="triggerAdaptiveRescheduling()" title="Automatically reschedule missed sessions">
+            <span>⚡ Adapt &amp; Reschedule</span>
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="openGenerateTimetableModal()">
+            <span>🗓️ Generate Timetable</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- View Containers -->
+      <div class="content-body">
+        
+        <!-- ===================================================================
+             VIEW 1: DASHBOARD
+             =================================================================== -->
+        <section id="view-dashboard" class="view-section active">
+          
+          <!-- Adaptive Notification Banner -->
+          <div id="adaptiveBanner" class="adaptive-banner">
+            <div class="adaptive-banner-content">
+              <h4><span>⚡</span> Adaptive Scheduler Active</h4>
+              <p id="adaptiveBannerText">
+                Analyzing exam dates, topic difficulty, and quiz scores. Your nearest exam is in <strong>6 days</strong>.
+              </p>
+            </div>
+            <div class="adaptive-banner-actions">
+              <button class="btn btn-secondary btn-sm" onclick="triggerAdaptiveRescheduling()">Reschedule Unfinished</button>
+              <button class="btn btn-primary btn-sm" onclick="switchView('ai-advisor')">View AI Strategy</button>
+            </div>
+          </div>
+
+          <!-- KPI Metric Cards -->
+          <div class="stats-grid">
+            <div class="stat-card primary">
+              <div class="stat-info">
+                <p>Study Hours Logged</p>
+                <h3 id="statStudyHours">0.0</h3>
+                <span class="stat-subtext highlight">✓ Logged via sessions</span>
+              </div>
+              <div class="stat-icon">⏱️</div>
+            </div>
+
+            <div class="stat-card success">
+              <div class="stat-info">
+                <p>Topic Completion</p>
+                <h3 id="statProgress">0%</h3>
+                <span id="statTopicsFraction" class="stat-subtext">0 of 0 topics done</span>
+              </div>
+              <div class="stat-icon">✅</div>
+            </div>
+
+            <div class="stat-card warning">
+              <div class="stat-info">
+                <p>Next Exam Countdown</p>
+                <h3 id="statNextExamDays">--</h3>
+                <span id="statNextExamTitle" class="stat-subtext">No upcoming exams</span>
+              </div>
+              <div class="stat-icon">🎯</div>
+            </div>
+
+            <div class="stat-card purple">
+              <div class="stat-info">
+                <p>Adaptive Health Score</p>
+                <h3 id="statHealthScore">--</h3>
+                <span id="statHealthLabel" class="stat-subtext highlight">Calculating...</span>
+              </div>
+              <div class="stat-icon">🛡️</div>
+            </div>
+          </div>
+
+          <!-- Dashboard Columns -->
+          <div class="dashboard-grid">
+            
+            <!-- Left Column: Today's Timetable -->
+            <div class="dashboard-col">
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">
+                    <h3>Today's Study Schedule</h3>
+                    <span id="todayCountBadge" class="card-badge">0 Sessions</span>
+                  </div>
+                  <button class="btn btn-secondary btn-sm" onclick="switchView('timetable')">Full Timetable →</button>
+                </div>
+                
+                <div id="todaySessionsContainer" class="session-list">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+
+              <!-- Quick Subject Overview -->
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">
+                    <h3>Coursework Progress</h3>
+                  </div>
+                  <button class="btn btn-secondary btn-sm" onclick="switchView('subjects')">Manage All →</button>
+                </div>
+                <div id="dashboardSubjectProgressList">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Upcoming Exams & AI Insight -->
+            <div class="dashboard-col">
+              <!-- Upcoming Exams -->
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">
+                    <h3>Upcoming Exam Deadlines</h3>
+                  </div>
+                  <button class="btn btn-secondary btn-sm" onclick="openAddExamModal()">+ Exam</button>
+                </div>
+                <div id="upcomingExamsContainer" class="exam-timeline">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+
+              <!-- AI Strategic Insight Snippet -->
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">
+                    <h3>🤖 AI Daily Strategy</h3>
+                  </div>
+                  <button class="btn btn-primary btn-sm" onclick="generateAiRecommendations()">Refresh</button>
+                </div>
+                <div id="dashboardAiSnippet" class="ai-snippet" style="font-size: 13px; line-height: 1.6; color: #475569;">
+                  Loading personalized recommendation...
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <!-- ===================================================================
+             VIEW 2: SUBJECTS & TOPICS
+             =================================================================== -->
+        <section id="view-subjects" class="view-section">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <div>
+              <h3 style="font-size: 18px; font-weight: 700;">Academic Subjects &amp; Syllabus Topics</h3>
+              <p style="font-size: 13px; color: var(--text-muted);">Manage subjects, topic difficulties, confidence levels, and exam dates</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button class="btn btn-secondary" onclick="openAddExamModal()">+ Add Exam</button>
+              <button class="btn btn-secondary" onclick="openAddTopicModal()">+ Add Topic</button>
+              <button class="btn btn-primary" onclick="openAddSubjectModal()">+ Add Subject</button>
+            </div>
+          </div>
+
+          <div id="subjectsCardsContainer" class="subjects-grid">
+            <!-- Rendered dynamically -->
+          </div>
+        </section>
+
+
+        <!-- ===================================================================
+             VIEW 3: TIMETABLE
+             =================================================================== -->
+        <section id="view-timetable" class="view-section">
+          <div class="timetable-controls">
+            <div class="view-toggle">
+              <button id="btnDailyView" class="active" onclick="setTimetableView('daily')">Daily Schedule</button>
+              <button id="btnWeeklyView" onclick="setTimetableView('weekly')">Weekly Schedule</button>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <button class="btn btn-secondary btn-sm" onclick="changeTimetableDate(-1)">← Prev</button>
+              <input type="date" id="timetableDateInput" class="form-control" style="width: auto; padding: 6px 12px; font-size: 13px;" onchange="onTimetableDatePicked(this.value)">
+              <button class="btn btn-secondary btn-sm" onclick="changeTimetableDate(1)">Next →</button>
+              <button class="btn btn-secondary btn-sm" onclick="jumpTimetableToToday()">Today</button>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+              <button class="btn btn-secondary btn-sm" onclick="triggerAdaptiveRescheduling()">⚡ Reschedule Unfinished</button>
+              <button class="btn btn-primary btn-sm" onclick="openGenerateTimetableModal()">🗓️ Re-generate Timetable</button>
+            </div>
+          </div>
+
+          <!-- Container for Daily or Weekly Grid -->
+          <div id="timetableRenderContainer">
+            <!-- Rendered dynamically -->
+          </div>
+        </section>
+
+
+        <!-- ===================================================================
+             VIEW 4: AI STUDY ADVISOR
+             =================================================================== -->
+        <section id="view-ai-advisor" class="view-section">
+          <div class="ai-advisor-layout">
+            
+            <!-- Left: 7-Day Strategic Plan -->
+            <div class="ai-plan-col">
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">
+                    <h3>⚡ 7-Day AI Strategic Study Plan</h3>
+                  </div>
+                  <button class="btn btn-primary btn-sm" onclick="generateAiRecommendations()">
+                    <span>Regenerate Plan</span>
+                  </button>
+                </div>
+                <div id="aiPlanOutput" class="ai-output-box">
+                  <div class="empty-state">
+                    <div class="empty-state-icon">🤖</div>
+                    <h4>AI Adaptive Strategic Advisor</h4>
+                    <p>Click "Regenerate Plan" to analyze your active subjects, upcoming exams, quiz scores, and weak topics.</p>
+                    <button class="btn btn-primary" onclick="generateAiRecommendations()">Generate 7-Day Strategy</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Interactive Topic Explainer -->
+            <div class="ai-explainer-col">
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">
+                    <h3>💡 AI Topic Explainer &amp; Concept Coach</h3>
+                  </div>
+                </div>
+                
+                <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px; margin-bottom: 20px;">
+                  <div class="form-row">
+                    <div class="form-group" style="margin-bottom: 10px;">
+                      <label>Select Subject</label>
+                      <select id="explainerSubjectSelect" class="form-control" onchange="populateExplainerTopics()">
+                        <option value="">-- Choose Subject --</option>
+                      </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 10px;">
+                      <label>Select Topic or Type Custom</label>
+                      <input type="text" id="explainerTopicInput" class="form-control" placeholder="e.g. Dynamic Programming, AVL Trees...">
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group" style="margin-bottom: 0;">
+                      <label>Explanation Style</label>
+                      <select id="explainerStyleSelect" class="form-control">
+                        <option value="Intuitive Beginner Analogy">Beginner Metaphor &amp; Intuition</option>
+                        <option value="In-depth Technical Breakdown" selected>In-depth Technical Breakdown</option>
+                        <option value="High-Yield Exam Cram Sheet">High-Yield Exam Cram Sheet (Formulas &amp; Traps)</option>
+                      </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0; display: flex; align-items: flex-end;">
+                      <button class="btn btn-primary" style="width: 100%;" onclick="requestTopicExplanation()">
+                        <span>Explain Topic 🚀</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="aiExplainerOutput" class="ai-output-box">
+                  <div class="empty-state">
+                    <div class="empty-state-icon">💡</div>
+                    <h4>Need help understanding a concept?</h4>
+                    <p>Select a topic above to receive intuitive analogies, rigorous technical breakdowns, and common exam pitfalls.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <!-- ===================================================================
+             VIEW 5: PRACTICE QUIZ & ASSESSMENTS
+             =================================================================== -->
+        <section id="view-quiz" class="view-section">
+          <div class="quiz-container">
+            
+            <!-- Setup Card -->
+            <div id="quizSetupCard" class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <h3>🎯 AI Practice Quiz Generator</h3>
+                </div>
+              </div>
+
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+                Test your mastery with 5 AI-generated multiple-choice questions. If you score under 60%, the adaptive engine automatically marks the topic as weak and schedules a remedial review session!
+              </p>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Subject</label>
+                  <select id="quizSubjectSelect" class="form-control" onchange="populateQuizTopics()">
+                    <option value="">-- Choose Subject --</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Topic</label>
+                  <select id="quizTopicSelect" class="form-control">
+                    <option value="">-- Choose Topic --</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Difficulty</label>
+                <select id="quizDifficultySelect" class="form-control">
+                  <option value="EASY">Easy (Foundational Definitions)</option>
+                  <option value="MEDIUM" selected>Medium (Standard Exam Problems)</option>
+                  <option value="HARD">Hard (Advanced Algorithmic Applications &amp; Edge Cases)</option>
+                </select>
+              </div>
+
+              <button class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="startQuizGeneration()">
+                <span>Generate Practice Quiz 🎯</span>
+              </button>
+            </div>
+
+            <!-- Active Quiz Player Card (Hidden until generated) -->
+            <div id="quizPlayerCard" style="display: none;">
+              <div class="quiz-header-card">
+                <div>
+                  <span id="quizTopicBadge" class="badge badge-medium" style="background: rgba(255,255,255,0.2); color: white;">Topic</span>
+                  <h3 id="quizTopicHeader" style="margin-top: 6px; font-size: 18px;">Topic Name</h3>
+                </div>
+                <div style="text-align: right;">
+                  <span id="quizQuestionCounter" style="font-size: 14px; font-weight: 700; color: #38bdf8;">Question 1 / 5</span>
+                </div>
+              </div>
+
+              <div class="quiz-question-card">
+                <div class="question-text" id="quizQuestionText">Question text here...</div>
+                <div class="options-list" id="quizOptionsList">
+                  <!-- Rendered dynamically -->
+                </div>
+
+                <div id="quizExplanationBox" class="quiz-explanation-box" style="display: none;"></div>
+
+                <div style="display: flex; justify-content: flex-end; margin-top: 24px; gap: 12px;">
+                  <button id="btnSubmitAnswer" class="btn btn-primary" onclick="submitCurrentAnswer()">Confirm Answer</button>
+                  <button id="btnNextQuestion" class="btn btn-secondary" style="display: none;" onclick="goToNextQuestion()">Next Question →</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quiz Result Card (Hidden until completed) -->
+            <div id="quizResultCard" class="quiz-result-card" style="display: none;">
+              <div id="scoreCircle" class="score-circle passed">
+                <div class="score-number" id="resultScoreNumber">80%</div>
+                <div class="score-label" id="resultScoreLabel">Score</div>
+              </div>
+              <h3 id="resultTitle" style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">Great Job!</h3>
+              <p id="resultFeedback" style="color: var(--text-muted); font-size: 14px; max-width: 480px; margin: 0 auto 24px;">
+                You demonstrated strong comprehension on this topic.
+              </p>
+
+              <div id="adaptiveRescheduleAlert" style="display: none; background: #fef2f2; border: 1px solid #fecaca; border-radius: var(--radius-md); padding: 16px; margin: 0 auto 24px; max-width: 520px; text-align: left;">
+                <h5 style="color: var(--danger); font-weight: 700; margin-bottom: 4px;">⚡ Adaptive Scheduler Action Taken</h5>
+                <p style="font-size: 13px; color: #7f1d1d; margin: 0;">
+                  Since your score was below 60%, this topic has been flagged as <strong>Weak</strong> and a 60-minute remedial review session has been automatically scheduled in your upcoming timetable.
+                </p>
+              </div>
+
+              <div style="display: flex; justify-content: center; gap: 12px;">
+                <button class="btn btn-secondary" onclick="resetQuizView()">Take Another Quiz</button>
+                <button class="btn btn-primary" onclick="switchView('timetable')">View Updated Timetable</button>
+              </div>
+            </div>
+
+            <!-- Recent Quiz History -->
+            <div class="card" style="margin-top: 32px;">
+              <div class="card-header">
+                <div class="card-title">
+                  <h3>Recent Quiz History</h3>
+                </div>
+              </div>
+              <div id="quizHistoryContainer">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <!-- ===================================================================
+             VIEW 6: ANALYTICS & PROGRESS
+             =================================================================== -->
+        <section id="view-analytics" class="view-section">
+          <div class="analytics-grid">
+            
+            <!-- Subject Completion Progress -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <h3>Subject Progress Breakdown</h3>
+                </div>
+              </div>
+              <div id="analyticsSubjectBars">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- Study Streaks & Activity -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <h3>Study Discipline &amp; Streak</h3>
+                </div>
+              </div>
+              <div style="text-align: center; padding: 20px 0;">
+                <div style="font-size: 54px; margin-bottom: 8px;">🔥</div>
+                <div style="font-size: 36px; font-weight: 900; color: var(--primary);" id="analyticsStreakDays">1 Day</div>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Consecutive Days with Completed Study Sessions</p>
+              </div>
+
+              <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-top: 16px;">
+                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px;">
+                  <span style="font-weight: 600;">Overall Quiz Average</span>
+                  <span id="analyticsQuizAvg" style="font-weight: 700; color: var(--success);">75%</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                  <span style="font-weight: 600;">Total Quizzes Attempted</span>
+                  <span id="analyticsQuizCount" style="font-weight: 700;">4</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Weak Topics Focus List -->
+            <div class="card" style="grid-column: 1 / -1;">
+              <div class="card-header">
+                <div class="card-title">
+                  <h3>⚠️ Weak Topics Requiring Revision</h3>
+                  <span id="analyticsWeakCountBadge" class="badge badge-hard">0 Flagged</span>
+                </div>
+              </div>
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+                Topics flagged from diagnostic quiz scores (&lt; 60%) or low self-rated confidence (≤ 2). Use the buttons to launch an AI practice quiz or read the concept guide.
+              </p>
+              <div id="analyticsWeakTopicsList" class="session-list">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ===================================================================
+       MODALS
+       =================================================================== -->
+
+  <!-- 1. AI Configuration Modal -->
+  <div id="configModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><span>🤖</span> AI Configuration (Google Gemini)</h3>
+        <button class="modal-close-btn" onclick="closeConfigModal()">✕</button>
+      </div>
+      <div class="modal-content">
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+          The system securely integrates the <strong>Google Gemini API</strong> for personalized study advice, topic explanations, and quiz creation. The key is kept strictly on the backend.
+        </p>
+        <div class="form-group">
+          <label>Google Gemini API Key</label>
+          <input type="password" id="modalApiKeyInput" class="form-control" placeholder="AIzaSy...">
+          <small style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 6px;">
+            Get a free key from <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--primary);">Google AI Studio</a>. You can also configure it via environment variable <code>GEMINI_API_KEY</code> or <code>src/main/resources/ai.properties</code>.
+          </small>
+        </div>
+        <div class="form-group">
+          <label>AI Model</label>
+          <select id="modalModelSelect" class="form-control">
+            <option value="gemini-1.5-flash">gemini-1.5-flash (Fast &amp; Recommended)</option>
+            <option value="gemini-2.0-flash">gemini-2.0-flash (Next Gen)</option>
+            <option value="gemini-1.5-pro">gemini-1.5-pro (High Reasoning)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeConfigModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveAiConfig()">Save Configuration</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Add / Edit Subject Modal -->
+  <div id="subjectModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="subjectModalTitle"><span>📚</span> Add New Subject</h3>
+        <button class="modal-close-btn" onclick="closeSubjectModal()">✕</button>
+      </div>
+      <div class="modal-content">
+        <input type="hidden" id="subjectIdInput">
+        <div class="form-group">
+          <label>Subject Name</label>
+          <input type="text" id="subjectNameInput" class="form-control" placeholder="e.g. Data Structures &amp; Algorithms">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Subject Code</label>
+            <input type="text" id="subjectCodeInput" class="form-control" placeholder="e.g. CS301">
+          </div>
+          <div class="form-group">
+            <label>Color Theme</label>
+            <input type="color" id="subjectColorInput" class="form-control" value="#4f46e5" style="height: 42px; padding: 2px;">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Priority</label>
+          <select id="subjectPrioritySelect" class="form-control">
+            <option value="HIGH">High Priority</option>
+            <option value="MEDIUM" selected>Medium Priority</option>
+            <option value="LOW">Low Priority</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Description / Notes</label>
+          <textarea id="subjectDescInput" class="form-control" placeholder="Brief subject syllabus description..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeSubjectModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveSubject()">Save Subject</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Add / Edit Topic Modal -->
+  <div id="topicModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="topicModalTitle"><span>📖</span> Add Topic to Subject</h3>
+        <button class="modal-close-btn" onclick="closeTopicModal()">✕</button>
+      </div>
+      <div class="modal-content">
+        <input type="hidden" id="topicIdInput">
+        <div class="form-group">
+          <label>Subject</label>
+          <select id="topicSubjectSelect" class="form-control">
+            <option value="">-- Choose Subject --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Topic Name</label>
+          <input type="text" id="topicNameInput" class="form-control" placeholder="e.g. Binary Search Trees &amp; AVL Trees">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Difficulty</label>
+            <select id="topicDifficultySelect" class="form-control">
+              <option value="EASY">Easy</option>
+              <option value="MEDIUM" selected>Medium</option>
+              <option value="HARD">Hard</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Estimated Hours</label>
+            <input type="number" id="topicHoursInput" class="form-control" min="0.5" max="20" step="0.5" value="2.5">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Status</label>
+            <select id="topicStatusSelect" class="form-control">
+              <option value="NOT_STARTED">Not Started</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="COMPLETED">Completed</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Confidence Level (1-5)</label>
+            <select id="topicConfidenceSelect" class="form-control">
+              <option value="1">1 - Very Low (Weak Topic)</option>
+              <option value="2">2 - Low</option>
+              <option value="3" selected>3 - Moderate</option>
+              <option value="4">4 - High</option>
+              <option value="5">5 - Mastered</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeTopicModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveTopic()">Save Topic</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Add / Edit Exam Modal -->
+  <div id="examModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="examModalTitle"><span>🎯</span> Add Upcoming Exam</h3>
+        <button class="modal-close-btn" onclick="closeExamModal()">✕</button>
+      </div>
+      <div class="modal-content">
+        <input type="hidden" id="examIdInput">
+        <div class="form-group">
+          <label>Subject</label>
+          <select id="examSubjectSelect" class="form-control">
+            <option value="">-- Choose Subject --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Exam Title</label>
+          <input type="text" id="examTitleInput" class="form-control" placeholder="e.g. Midterm Theory Exam">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Exam Date</label>
+            <input type="date" id="examDateInput" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Target Score (%)</label>
+            <input type="number" id="examTargetScoreInput" class="form-control" min="50" max="100" value="90">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Priority</label>
+          <select id="examPrioritySelect" class="form-control">
+            <option value="HIGH" selected>High (Urgent Priority)</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Notes / Scope</label>
+          <textarea id="examNotesInput" class="form-control" placeholder="Key chapters, question formats, formulas..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeExamModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveExam()">Save Exam</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Generate Timetable Modal -->
+  <div id="generateTimetableModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><span>🗓️</span> Generate Smart Timetable</h3>
+        <button class="modal-close-btn" onclick="closeGenerateTimetableModal()">✕</button>
+      </div>
+      <div class="modal-content">
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+          The Core Java scheduling algorithm will distribute your uncompleted topics across daily study slots based on upcoming exam deadlines, topic difficulties, confidence deficits, and spaced interleaving.
+        </p>
+        <div class="form-group">
+          <label>Start Date</label>
+          <input type="date" id="genStartDateInput" class="form-control">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Days Ahead</label>
+            <input type="number" id="genDaysAheadInput" class="form-control" min="1" max="30" value="7">
+          </div>
+          <div class="form-group">
+            <label>Available Hours / Day</label>
+            <input type="number" id="genDailyHoursInput" class="form-control" min="1" max="8" step="0.5" value="3.5">
+          </div>
+        </div>
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: none;">
+            <input type="checkbox" id="genClearFutureCheckbox" checked>
+            <span>Replace currently scheduled future sessions (preserves completed sessions)</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeGenerateTimetableModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="executeTimetableGeneration()">Generate Timetable 🚀</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Complete Session Modal -->
+  <div id="completeSessionModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><span>✅</span> Complete Study Session</h3>
+        <button class="modal-close-btn" onclick="closeCompleteSessionModal()">✕</button>
+      </div>
+      <div class="modal-content">
+        <input type="hidden" id="completeSessionId">
+        <input type="hidden" id="completeTopicId">
+        <h4 id="completeTopicName" style="font-size: 15px; margin-bottom: 16px;">Topic Name</h4>
+        
+        <div class="form-group">
+          <label>Actual Study Time (Minutes)</label>
+          <input type="number" id="completeActualMinutesInput" class="form-control" min="10" max="360" value="60">
+        </div>
+        <div class="form-group">
+          <label>Session Notes / Key Learnings</label>
+          <textarea id="completeNotesInput" class="form-control" placeholder="What concepts did you master? Any doubts?"></textarea>
+        </div>
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: none;">
+            <input type="checkbox" id="completeMarkTopicCheckbox" checked>
+            <span>Mark topic as completed in syllabus</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeCompleteSessionModal()">Cancel</button>
+        <button class="btn btn-success" onclick="confirmCompleteSession()">Record &amp; Finish</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Authentication Modal (Login & Register) -->
+  <div id="authModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 id="authModalHeader"><span>🔐</span> Student Authentication</h3>
+        <button id="authModalCloseBtn" class="modal-close-btn" onclick="closeAuthModal()">✕</button>
+      </div>
+      <div class="modal-content">
+        <!-- Auth Tabs: Sign In vs Create Account -->
+        <div class="auth-tabs">
+          <button id="tabBtnLogin" class="auth-tab-btn active" onclick="switchAuthTab('login')">Sign In</button>
+          <button id="tabBtnRegister" class="auth-tab-btn" onclick="switchAuthTab('register')">Create Account</button>
+        </div>
+
+        <!-- Form 1: Sign In -->
+        <div id="loginFormContainer">
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="loginEmailInput" class="form-control" placeholder="alex.mercer@university.edu">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="loginPasswordInput" class="form-control" placeholder="••••••••">
+          </div>
+          <button class="btn btn-primary" style="width: 100%; padding: 12px; margin-top: 8px;" onclick="executeLogin()">
+            Sign In 🚀
+          </button>
+
+          <!-- Quick Demo Button -->
+          <div class="demo-login-box">
+            <div>
+              <p><strong>Demo Student Profile:</strong></p>
+              <p style="font-size: 11px; color: #4338ca;">alex.mercer@university.edu / password123</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 5px 10px;" onclick="fillAndExecuteDemoLogin()">
+              ⚡ Demo Login
+            </button>
+          </div>
+        </div>
+
+        <!-- Form 2: Register -->
+        <div id="registerFormContainer" style="display: none;">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="regNameInput" class="form-control" placeholder="e.g. Jordan Lee">
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="regEmailInput" class="form-control" placeholder="jordan.lee@university.edu">
+          </div>
+          <div class="form-group">
+            <label>Password (min 6 characters)</label>
+            <input type="password" id="regPasswordInput" class="form-control" placeholder="Create secure password">
+          </div>
+          <div class="form-group">
+            <label>Target Daily Study Hours</label>
+            <input type="number" id="regHoursInput" class="form-control" min="1" max="10" step="0.5" value="3.5">
+          </div>
+          <button class="btn btn-success" style="width: 100%; padding: 12px; margin-top: 8px;" onclick="executeRegister()">
+            Create Account &amp; Start Planning ✨
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/app.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/subjects.js"></script>
+  <script src="js/timetable.js"></script>
+  <script src="js/ai-advisor.js"></script>
+  <script src="js/quiz.js"></script>
+  <script src="js/analytics.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+# Compiled class files
+target/
+*.class
+
+# Package Files
+*.war
+*.ear
+
+# Logs
+*.log
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+                             https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+         version="6.0">
+
+    <display-name>AI Adaptive Study Planner</display-name>
+    <description>Core Java Servlets and JDBC Adaptive Study Planning Web Application</description>
+
+    <!-- Welcome File -->
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
+
+    <!-- Servlets -->
+    <servlet>
+        <servlet-name>AuthServlet</servlet-name>
+        <servlet-class>com.studyplanner.servlet.AuthServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AuthServlet</servlet-name>
+        <url-pattern>/api/auth</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AuthServlet</servlet-name>
+        <url-pattern>/api/auth/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>DashboardServlet</servlet-name>
+        <servlet-class>com.studyplanner.servlet.DashboardServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DashboardServlet</servlet-name>
+        <url-pattern>/api/dashboard</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>SubjectServlet</servlet-name>
+        <servlet-class>com.studyplanner.servlet.SubjectServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>SubjectServlet</servlet-name>
+        <url-pattern>/api/subjects</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>SubjectServlet</servlet-name>
+        <url-pattern>/api/subjects/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>TopicServlet</servlet-name>
+        <servlet-class>com.studyplanner.servlet.TopicServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>TopicServlet</servlet-name>
+        <url-pattern>/api/topics</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>TopicServlet</servlet-name>
+        <url-pattern>/api/topics/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ExamServlet</servlet-name>
+        <servlet-class>com.studyplanner.servlet.ExamServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ExamServlet</servlet-name>
+        <url-pattern>/api/exams</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ExamServlet</servlet-name>
+        <url-pattern>/api/exams/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>TimetableServlet</servlet-name>
+        <servlet-class>com.studyplanner.servlet.TimetableServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>TimetableServlet</servlet-name>
+        <url-pattern>/api/timetable</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>TimetableServlet</servlet-name>
+        <url-pattern>/api/timetable/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AiAdvisorServlet</servlet-name>
+        <servlet-class>com.studyplanner.servlet.AiAdvisorServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AiAdvisorServlet</servlet-name>
+        <url-pattern>/api/ai</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AiAdvisorServlet</servlet-name>
+        <url-pattern>/api/ai/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>QuizServlet</servlet-name>
+        <servlet-class>com.studyplanner.servlet.QuizServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>QuizServlet</servlet-name>
+        <url-pattern>/api/quiz</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>QuizServlet</servlet-name>
+        <url-pattern>/api/quiz/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AnalyticsServlet</servlet-name>
+        <servlet-class>com.studyplanner.servlet.AnalyticsServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AnalyticsServlet</servlet-name>
+        <url-pattern>/api/analytics</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>HealthServlet</servlet-name>
+        <servlet-class>com.studyplanner.servlet.HealthServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>HealthServlet</servlet-name>
+        <url-pattern>/api/health</url-pattern>
+    </servlet-mapping>
+
+</web-app>
