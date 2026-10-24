@@ -1,0 +1,17 @@
+{
+  "name": "ai-adaptive-study-planner",
+  "version": "1.0.0",
+  "description": "AI Adaptive Study Planner web application",
+  "main": "api/index.js",
+  "scripts": {
+    "build": "node build-vercel.js"
+  },
+  "keywords": [
+    "study-planner",
+    "ai",
+    "adaptive-learning",
+    "education"
+  ],
+  "author": "harshitha",
+  "license": "MIT"
+}

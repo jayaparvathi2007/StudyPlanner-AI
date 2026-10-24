@@ -189,6 +189,23 @@ The build script will compile all Java sources, package `studyplanner.war`, and 
 
 ---
 
+## ☁️ Deployment to Vercel (1-Click Cloud Hosting)
+
+This repository includes a ready-to-deploy **Vercel Serverless Architecture** (`vercel.json`, `package.json`, and `api/index.js`):
+
+1. Go to **[vercel.com](https://vercel.com)** and log in with your GitHub account.
+2. Click **"Add New..." → "Project"**.
+3. Select your repository: **`jayaparvathi2007/StudyPlanner-AI`**.
+4. Leave all build settings as default (Framework Preset: *Other*, Root Directory: `./`).
+5. *(Optional)* Add Environment Variable:
+   - Key: `GEMINI_API_KEY`
+   - Value: *your Google Gemini API key*
+6. Click **"Deploy"**.
+7. In ~30 seconds, your application will be live at:
+   `https://study-planner-ai.vercel.app` (or your custom Vercel URL)!
+
+---
+
 ### Step 3: Run Apache Tomcat Server
 - To start Tomcat:
   ```powershell
